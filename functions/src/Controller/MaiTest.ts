@@ -8,9 +8,11 @@ export interface MaiSubmissionParam {
 export class MaiTestController {
   private static __instance: MaiTestController
   private soalMaiModel: SoalMaiModel
+  private maiSubmissionModel: MaiSubmissionModel
 
   constructor() {
     this.soalMaiModel = SoalMaiModel.getInstance()
+    this.maiSubmissionModel = MaiSubmissionModel.getInstance()
   }
 
   static getInstance() {
@@ -47,13 +49,17 @@ export class MaiTestController {
 
     const submissionResult: MaiSubmission = {
       jawaban: jawaban,
-      scrore: result,
+      score: result,
       knowledge: 100,
       requlation: 100
     }
 
-    await MaiSubmissionModel.getInstance().insertResult(uid, submissionResult)
+    await this.maiSubmissionModel.insertResult(uid, submissionResult)
 
     return submissionResult
+  }
+
+  async getMaiResult(uid: string) {
+    return this.maiSubmissionModel.getMaiResult(uid)
   }
 }

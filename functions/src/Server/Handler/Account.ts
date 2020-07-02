@@ -52,7 +52,7 @@ export async function signinHandler(req: express.Request, res: express.Response,
   }
 
   res.cookie('session', token)
-  res.status(200).send()
+  res.status(200).send({ status: 200 })
 }
 
 export async function getAccountPetHandler(req: express.Request, res: express.Response, next: express.NextFunction) {

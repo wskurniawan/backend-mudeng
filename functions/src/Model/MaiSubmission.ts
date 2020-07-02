@@ -3,7 +3,7 @@ import { DatabaseError } from '../Error/Error'
 
 export interface MaiSubmission {
   jawaban: JawabanMAI[]
-  scrore: MaiScore
+  score: MaiScore
   knowledge: number
   requlation: number
 }

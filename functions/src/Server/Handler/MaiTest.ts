@@ -37,3 +37,15 @@ export async function nilaiMaiHandler(req: Request, res: Response, next: NextFun
 
   return res.send(result)
 }
+
+export async function getHasilMaiHandler(req: Request, res: Response, next: NextFunction) {
+  let hasilMai
+  try {
+    hasilMai = await MaiTestController.getInstance().getMaiResult(req.user.uid)
+  } catch (error) {
+    next(error)
+    return
+  }
+
+  res.send(hasilMai)
+}
