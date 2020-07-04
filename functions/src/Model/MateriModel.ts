@@ -11,10 +11,16 @@ export interface InfoMatkul {
   sks: number
 }
 
+export interface UserMateriRecordContent {
+  apk?: number
+  quiz?: number
+  evaluasi?: number
+}
+
 export interface UserMateriRecord {
   nama: string
   record: {
-    [idMateri: string]: number
+    [idMateri: string]: UserMateriRecordContent
   }
   total: number
 }
@@ -86,8 +92,8 @@ export class MateriModel {
     return arrInfoMateri
   }
 
-  async setUserRecord(uid: string, record: UserMateriRecord) {
-    const leaderBoardRef = this.ref.child('leaderboard')
+  async setUserRecord(uid: string, idMatkul: string, record: UserMateriRecord) {
+    const leaderBoardRef = this.ref.child(`${idMatkul}/leaderboard`)
     try {
       await leaderBoardRef.child(uid).set(record)
     } catch (error) {
@@ -98,8 +104,8 @@ export class MateriModel {
     return
   }
 
-  async getUserRecord(uid: string): Promise<UserMateriRecord | null> {
-    const leaderBoardRef = this.ref.child('leaderboard')
+  async getUserRecord(uid: string, idMatkul: string): Promise<UserMateriRecord | null> {
+    const leaderBoardRef = this.ref.child(`${idMatkul}/leaderboard`)
     let snapshot: firebase.database.DataSnapshot
     try {
       snapshot = await leaderBoardRef.child(uid).once('value')
@@ -185,5 +191,36 @@ export class MateriModel {
     }
 
     return snapshot.val()
+  }
+
+  async soalAPK(idMatkul: string, idMateri: string): Promise<SoalEvaluasi[]> {
+    const refEvaluasi = this.ref.child(`${idMatkul}/materi/${idMateri}/soal-apk`)
+
+    let snapshot: firebase.database.DataSnapshot
+    try {
+      snapshot = await refEvaluasi.once('value')
+    } catch (error) {
+      console.error(error.message)
+      throw DatabaseError(error.message)
+    }
+
+    return snapshot.val()
+  }
+
+  async materiLeaderboard(idMatkul: string): Promise<UserMateriRecord[]> {
+    let snapshot
+    try {
+      snapshot = await this.ref.child(`${idMatkul}/leaderboard`).once('value')
+    } catch (error) {
+      console.error(error)
+      throw DatabaseError(error.message)
+    }
+
+    if(!snapshot.val()) {
+      return []
+    }
+
+    const resultObj: object = snapshot.val()
+    return Object.values(resultObj)
   }
 }

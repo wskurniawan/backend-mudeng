@@ -100,3 +100,15 @@ export async function getAvailablePetHandler(req: express.Request, res: express.
 
   res.send(result)
 }
+
+export async function getCommonProfileHandler(req: express.Request, res: express.Response, next: express.NextFunction) {
+  let result
+  try {
+    result = await AccountController.getInstance().getCommonProfile(req.user.uid)
+  } catch (error) {
+    next(error)
+    return
+  }
+
+  res.send(result)
+}

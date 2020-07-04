@@ -1,0 +1,64 @@
+import * as Busboy from 'busboy'
+import * as os from 'os'
+import * as path from 'path'
+import * as fs from 'fs'
+import { Request, Response, NextFunction } from 'express'
+
+export function filesUpload(req: Request, res: Response, next: NextFunction) {
+  // See https://cloud.google.com/functions/docs/writing/http#multipart_data
+  const busboy = new Busboy({
+    headers: req.headers,
+    limits: {
+      // Cloud functions impose this restriction anyway
+      fileSize: 10 * 1024 * 1024,
+    }
+  })
+
+  const fields: any = {}
+  const files: any[] = []
+  const fileWrites: any[] = []
+  // Note: os.tmpdir() points to an in-memory file system on GCF
+  // Thus, any files in it must fit in the instance's memory.
+  const tmpdir = os.tmpdir()
+
+  busboy.on('field', (key, value) => {
+    // You could do additional deserialization logic here, values will just be
+    // strings
+    fields[key] = value
+  })
+
+  busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+    const filepath = path.join(tmpdir, filename)
+    console.log(`Handling file upload field ${fieldname}: ${filename} (${filepath})`)
+    const writeStream = fs.createWriteStream(filepath)
+    file.pipe(writeStream)
+
+    fileWrites.push(new Promise((resolve, reject) => {
+      file.on('end', () => writeStream.end())
+      writeStream.on('finish', () => {
+        files.push({
+          fieldname,
+          originalname: filename,
+          encoding,
+          mimetype,
+          filepath
+        })
+
+        resolve()
+      })
+      writeStream.on('error', reject)
+    }))
+  })
+
+  busboy.on('finish', () => {
+    Promise.all(fileWrites)
+      .then(() => {
+        req.body = fields
+        req.files = files
+        next()
+      })
+      .catch(next)
+  })
+
+  busboy.end(req.rawBody)
+}

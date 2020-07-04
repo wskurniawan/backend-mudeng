@@ -1,5 +1,6 @@
 import { SoalMaiModel } from "../Model/SoalMai"
 import { MaiScore, JawabanMAI, MaiSubmission, MaiSubmissionModel } from "../Model/MaiSubmission"
+import { AccountModel } from "../Model/Account"
 
 export interface MaiSubmissionParam {
   jawaban: JawabanMAI[]
@@ -9,10 +10,12 @@ export class MaiTestController {
   private static __instance: MaiTestController
   private soalMaiModel: SoalMaiModel
   private maiSubmissionModel: MaiSubmissionModel
+  private accountModel: AccountModel
 
   constructor() {
     this.soalMaiModel = SoalMaiModel.getInstance()
     this.maiSubmissionModel = MaiSubmissionModel.getInstance()
+    this.accountModel = AccountModel.getInstance()
   }
 
   static getInstance() {
@@ -55,6 +58,7 @@ export class MaiTestController {
     }
 
     await this.maiSubmissionModel.insertResult(uid, submissionResult)
+    await this.accountModel.issueXP(uid, 'mai-test')
 
     return submissionResult
   }

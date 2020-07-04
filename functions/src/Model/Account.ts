@@ -2,16 +2,20 @@ import * as firebase from 'firebase-admin'
 import { DatabaseError } from '../Error/Error'
 
 export interface Account {
+  nama: string
   uid: string
   email: string
   nim: string
   password: string
   pet?: AccountPet
+  xp?: number
 }
 
 export interface AccountPet {
   id: string
 }
+
+export type xpEvent = 'pilih-pet' | 'mai-test' | 'foto-profil' | 'masuk-kelas' | 'memilih-materi' | 'memilih-metode-belajar' | 'selesai-materi' | 'selesai-evaluasi' | 'skor-evaluasi'
 
 export class AccountModel {
   private static __instance: AccountModel
@@ -106,6 +110,48 @@ export class AccountModel {
   async setUserPet(uid: string, pet: AccountPet) {
     try {
       await this.ref.child(`${uid}/pet`).set(pet)
+    } catch (error) {
+      console.error(error)
+      throw DatabaseError(error.message)
+    }
+
+    return
+  }
+
+  async issueXP(uid: string, event: xpEvent, score: number = 0) {
+    const account = await this.getUserByuid(uid)
+
+    if(!account) {
+      throw DatabaseError('Account not found')
+    }
+
+    let currentXP = 0
+    if(account.xp) {
+      currentXP = account.xp
+    }
+
+    if(event === 'pilih-pet') {
+      currentXP += 20
+    } else if (event === 'mai-test') {
+      currentXP += 40
+    } else if (event === 'foto-profil') {
+      currentXP += 20
+    } else if (event === 'masuk-kelas') {
+      currentXP += 10
+    } else if (event === 'memilih-materi') {
+      currentXP += 10
+    } else if (event === 'memilih-metode-belajar') {
+      currentXP += 20
+    } else if (event === 'selesai-materi') {
+      currentXP += 40
+    } else if (event === 'selesai-evaluasi') {
+      currentXP += 40
+    } else if (event === 'skor-evaluasi') {
+      currentXP += score
+    }
+
+    try {
+      await this.ref.child(`${uid}/xp`).set(currentXP)
     } catch (error) {
       console.error(error)
       throw DatabaseError(error.message)
