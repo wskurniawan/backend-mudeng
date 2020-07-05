@@ -20,13 +20,15 @@ export async function signupHandler(req: express.Request, res: express.Response,
     return
   }
 
+  let token
   try {
-    await AccountController.getInstance().signup({ ...req.body, uid: '' })
+    token = await AccountController.getInstance().signup({ ...req.body, uid: '' })
   } catch (error) {
     next(error)
     return
   }
 
+  res.cookie('session', token)
   res.status(200).send()
 }
 

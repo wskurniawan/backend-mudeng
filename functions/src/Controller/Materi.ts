@@ -210,17 +210,19 @@ export class MateriController {
     return { jawabanUser: strJawabanUser, kunciJawaban: kunciJawaban, score: parseInt(score) }
   }
 
-  async submitQuizSum(user: Account, idMatkul: string, idMateri: string, jawaban: string[]) {
+  async submitQuizSum(user: Account, idMatkul: string, idMateri: string, jawaban: string[], indexSoal: number[]) {
     const soalSum = await this.materiModel.quizMateri(idMatkul, idMateri, 'sum')
     
     const kunciJawaban: string[] = []
     let totalScore = 0
+    indexSoal.map(item => {
+      kunciJawaban.push(soalSum[item].jawaban as string)
+    })
     jawaban.map((item, index) => {
       totalScore += Similiarity.compareTwoStrings(item, soalSum[index].jawaban as string)
-      kunciJawaban.push(soalSum[index].jawaban as string)
     })
 
-    const score = ((totalScore / soalSum.length) * 100).toFixed(0)
+    const score = ((totalScore / indexSoal.length) * 100).toFixed(0)
     let userRecord = await this.materiModel.getUserRecord(user.uid, idMatkul)
     if(!userRecord) {
       userRecord = {
@@ -356,7 +358,8 @@ export class MateriController {
   }
 
   private async generateHistory(uid: string, idMatkul: string, idMateri: string, type: 'quiz' | 'evaluasi', score: number, method?: 'sum' | 'video' | 'map') {
-    const materi = await this.materiModel.getMatkul(idMatkul)
+    const matkul = await this.materiModel.getMatkul(idMatkul)
+    const materi = await this.materiModel.daftarMateri(idMatkul)
     const userHistory = await this.historyModel.getUserRecord(uid)
 
     userHistory.push({
@@ -365,7 +368,7 @@ export class MateriController {
       type,
       method: method || '',
       score,
-      title: `${materi.nama} - ${type.toUpperCase()}`,
+      title: `${matkul.nama} (${materi.find(item => item.id === idMateri)?.judul}) - ${type.toUpperCase()}`,
       timestamp: Date.now(),
       tanggal: moment().tz('Asia/Jakarta').format('LLLL')
     })

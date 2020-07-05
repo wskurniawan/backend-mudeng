@@ -50,7 +50,14 @@ export class AccountController {
     data.password = await bcrypt.hash(data.password, 10)
 
     await this.accountModel.insertUser(data)
-    return
+    const account = await this.accountModel.getUserByEmail(data.email)
+
+    if (!account) {
+      throw DatabaseError('Akun tidak ditemukan')
+    }
+
+    const token = this.generateToken(account.uid)
+    return token
   }
 
   // login

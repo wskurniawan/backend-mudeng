@@ -122,7 +122,8 @@ export async function submitQuizSumHandler(req: Request, res: Response, next: Ne
   const schema = joi.object().keys({
     jawaban: joi.array().items(joi.string()).required(),
     idMatkul: joi.string().required(),
-    idMateri: joi.string().required()
+    idMateri: joi.string().required(),
+    selected: joi.array().items(joi.number()).required()
   })
 
   try {
@@ -135,7 +136,7 @@ export async function submitQuizSumHandler(req: Request, res: Response, next: Ne
 
   let result
   try {
-    result = await MateriController.getInstance().submitQuizSum(req.user, req.body.idMatkul, req.body.idMateri, req.body.jawaban)
+    result = await MateriController.getInstance().submitQuizSum(req.user, req.body.idMatkul, req.body.idMateri, req.body.jawaban, req.body.selected)
   } catch (error) {
     next(error)
     return
